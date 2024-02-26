@@ -1,37 +1,33 @@
-package com.example.Student.controller;
-
 import com.example.Student.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 public class StudentController {
 
-    Map<String, Student> mapIdToStudent;
-
-    Map<String, List<Student>> mapUniversityToStudent;
+    Map<String, Student> mapIdToStudent = new HashMap<>();
+    Map<String, List<Student>> mapUniversityToStudent = new HashMap<>();
 
     @PostMapping("/addStudent")
-    public String addStudent(@RequesBody String name,
-    @RequesBody int age,
-    @RequesBody String adhar,
-    @RequesBody String university){
+    public String addStudent(@RequestBody Student student){
         String id = UUID.randomUUID().toString();
-        Student students = new Student(id, name, age, adhar, university);
-        mapIdToStudent.put(university, students);
+        student.setId(id);
+        mapIdToStudent.put(id, student);
+        
+        mapUniversityToStudent.computeIfAbsent(student.getUniversity(), k -> new ArrayList<>()).add(student);
+        
         return id;
     }
 
-    @GetMapping("/getStudentByUniversity")
-    public List<Student> getAllStudentsByUniversity(String university){
-        return mapUniversityToStudent.getOrDefault(university, null);
+    @GetMapping("/getStudentsByUniversity")
+    public List<Student> getAllStudentsByUniversity(@RequestParam String university){
+        return mapUniversityToStudent.getOrDefault(university, new ArrayList<>());
     }
 
     @GetMapping("/getStudentById")
-    public Student getStudentById(String id){
+    public Student getStudentById(@RequestParam String id){
         return mapIdToStudent.getOrDefault(id, null);
     }
 }
